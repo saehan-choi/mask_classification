@@ -1,40 +1,41 @@
-from cProfile import label
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torchvision.transforms as transforms
+
+import timm
+import os
+
+from PIL import Image
+from tqdm import tqdm
 from torch.utils.data import DataLoader, Dataset
 
 
-import torchvision.transforms as transforms
-
-from PIL import Image
-
-import timm
-from tqdm import tqdm
-import os
-
-
 class CFG:
-    batch_size = 5
+    batch_size = 256
     epochs = 20
     lr = 3e-4
     device = 'cuda'
     model_name = 'efficientnet_b0'
     model_pretrained = True
-    model_classifier = 2
+    model_num_class = 3
 
-    train_img_path = './dataset/train/'
-    val_img_path = './dataset/val/'
-    
+    img_resize = (64, 64)
+
+    train_img_path = './dataset3/train/'
+    val_img_path = './dataset3/val/'
+
+    weight_save_path = './weights/'
+
     transform = transforms.Compose([transforms.ToTensor(),
-                                    transforms.Resize((512,512))
+                                    transforms.Resize(img_resize)
                                     ])
 
 class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
-        self.model = timm.create_model(CFG.model_name, pretrained=CFG.model_pretrained)
-        self.model.classifier = nn.Linear(1280, CFG.model_classifier)
+        self.model = timm.create_model(CFG.model_name, pretrained=CFG.model_pretrained, num_classes=CFG.model_num_class)
+        print(f'Model_structure: {self.model}')
 
     def forward(self,x):
         output = self.model(x)
@@ -63,7 +64,6 @@ class ImageDataset(Dataset):
         img_path = self.file_list[index]
         label = self.labels[index]
         image = Image.open(img_path)
-
         if self.transform:
             image = self.transform(image)
         else:
@@ -72,21 +72,14 @@ class ImageDataset(Dataset):
         return image, label
 
 
-def train_one_epoch(model, optimizer, dataloader, epoch, device):
-
+def train_one_epoch(model, optimizer, dataloader, epoch, train_loss_arr, device):
     model.train()
     dataset_size = 0
     running_loss = 0
 
-    # optimizer = optimizer(model.parameters(), lr=lr)
     bar = tqdm(enumerate(dataloader), total=len(dataloader))
 
     for step, data in bar:
-        # print(f"data:  {data[0]}")
-        # image tensor
-        # print(f"data:  {data[1]}")
-        # label tensor
-
         images = data[0].to(device, dtype=torch.float)
         labels = data[1].to(device, dtype=torch.long)
 
@@ -103,20 +96,15 @@ def train_one_epoch(model, optimizer, dataloader, epoch, device):
         epoch_loss = running_loss/dataset_size
 
         bar.set_postfix(EPOCH=epoch, TRAIN_LOSS=epoch_loss)
+    train_loss_arr.append(epoch_loss)
 
-def val_one_epoch(model, optimizer, dataloader, epoch, device):
-    global data, images
-
+def val_one_epoch(model, optimizer, dataloader, epoch, val_loss_arr, device):
     model.eval()
     dataset_size = 0
     running_loss = 0
-    # optimizer = optimizer(model.parameters(), lr=lr)
+
     bar = tqdm(enumerate(dataloader), total=len(dataloader))
     for step, data in bar:
-        # print(f"data:  {data[0]}")
-        # image tensor
-        # print(f"data:  {data[1]}")
-        # label tensor
         images = data[0].to(device, dtype=torch.float)
         labels = data[1].to(device, dtype=torch.long)
 
@@ -129,19 +117,27 @@ def val_one_epoch(model, optimizer, dataloader, epoch, device):
         epoch_loss = running_loss/dataset_size
 
         bar.set_postfix(EPOCH=epoch, VAL_LOSS=epoch_loss)
+    val_loss_arr.append(epoch_loss)
+
 
 if __name__ == "__main__":
+
+    train_loss_arr = []
+    val_loss_arr = []
 
     model = Model().to(CFG.device)
     optimizer = optim.Adam(model.parameters(), lr = CFG.lr)
 
     train_dataset = ImageDataset(CFG.train_img_path, transform=CFG.transform)
-    train_loader = DataLoader(train_dataset, shuffle=True, batch_size=1)
+    train_loader = DataLoader(train_dataset, shuffle=True, batch_size=CFG.batch_size)
 
     val_dataset = ImageDataset(CFG.val_img_path, transform=CFG.transform)
-    val_loader = DataLoader(val_dataset, shuffle=False, batch_size=1)
+    val_loader = DataLoader(val_dataset, shuffle=False, batch_size=CFG.batch_size)
 
     for epoch in range(1, CFG.epochs+1):
-        train_one_epoch(model, optimizer, train_loader, epoch, CFG.device)
-        val_one_epoch(model, optimizer, val_loader, epoch, CFG.device)
+        train_one_epoch(model, optimizer, train_loader, epoch, train_loss_arr, CFG.device)
+        val_one_epoch(model, optimizer, val_loader, epoch, val_loss_arr, CFG.device)
+        torch.save(model.state_dict(), CFG.weight_save_path+f'{CFG.model_name}_epoch_{epoch}.pt')
 
+    print(train_loss_arr)
+    print(val_loss_arr)
