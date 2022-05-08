@@ -20,9 +20,9 @@ class CFG:
     model_pretrained = True
     model_num_class = 3
 
-    img_resize = (64, 64)
+    img_resize = (224, 224)
 
-    weight_path = './weights/train_dataset_정제_efficientnet_b0_epoch_31.pt'
+    weight_path = './weights/train_dataset_정제_efficientnet_b0_epoch_4.pt'
 
     transformed = A.Compose([A.Resize(img_resize[0], img_resize[1]),
                         # A.Normalize(),
@@ -42,97 +42,100 @@ class Model(nn.Module):
         return output
 
 model = Model()
-model.load_state_dict(torch.load(CFG.weight_path))
-model.to(CFG.device)
-
-# tensor_img = torch.Tensor(cv2.resize(img)) -> 이런방법도 있다고합니다.
-
-
-labels = deque([])
-image_list = []
-label_list = []
-for i in os.listdir(CFG.testset_data_path):
-    path = CFG.testset_data_path+i
-    for j in os.listdir(path):
-        image_list.append(path+'/'+j)
-        labels.append(i)
-
-for _ in range(len(labels)):
-    i = labels.popleft()
-    if i == 'mask':
-        label_list.append(0)
-    elif i == 'nomask':
-        label_list.append(1)
-    elif i == 'wrong':
-        label_list.append(2)
-
-falseCount = 0
-rightCount = 0
-cnt = 0
-
-
-real_zero_pred_one = 0
-real_zero_pred_two = 0
-
-real_one_pred_zero = 0
-real_one_pred_two = 0
-
-real_two_pred_zero = 0
-real_two_pred_one = 0
-
-
-for k in image_list:
-    st = time.time()
-    image = cv2.imread(k)
-
-    transformed = CFG.transformed(image=image)
-    transformed_img = transformed["image"].unsqueeze(0).float().to(CFG.device)
-
-    output = model(transformed_img)
+with torch.no_grad():
     
-    out_label = torch.argmax(output).item()
+    model.load_state_dict(torch.load(CFG.weight_path))
+    model.to(CFG.device)
 
-    # print(f'label:{label_list[cnt]}')
-    # print(f'out:{out_label}')
+    # tensor_img = torch.Tensor(cv2.resize(img)) -> 이런방법도 있다고합니다.
 
-    #     falseCount+=1
+    model.eval()
 
-    # elif label_list[cnt] == out_label:
-    #     rightCount+=1
+    labels = deque([])
+    image_list = []
+    label_list = []
+    for i in os.listdir(CFG.testset_data_path):
+        path = CFG.testset_data_path+i
+        for j in os.listdir(path):
+            image_list.append(path+'/'+j)
+            labels.append(i)
 
-    # if label_list[cnt] == 0 and out_label == 1:
-    #     real_zero_pred_one+=1
-    # elif label_list[cnt] == 0 and out_label == 2:
-    #     real_zero_pred_two+=1
+    for _ in range(len(labels)):
+        i = labels.popleft()
+        if i == 'dog':
+            label_list.append(0)
+        elif i == 'cat':
+            label_list.append(1)
+        # elif i == 'wrong':
+        #     label_list.append(2)
 
-    # elif label_list[cnt] == 1 and out_label == 0:
-    #     real_one_pred_zero+=1
-    # elif label_list[cnt] == 1 and out_label == 2:
-    #     real_one_pred_two+=1
-
-    # elif label_list[cnt] == 2 and out_label == 0:
-    #     real_two_pred_zero+=1
-    # elif label_list[cnt] == 2 and out_label == 1:
-    #     real_two_pred_one+=1
-
-    if label_list[cnt] == out_label:
-        rightCount+=1
-    else:
-        falseCount+=1
-
-
-    ed = time.time()
-
-    cnt+=1
-
-    print(f'accuracy : {round(rightCount/(rightCount+falseCount+1e-10)*100,3)}%')
+    falseCount = 0
+    rightCount = 0
+    cnt = 0
 
 
+    real_zero_pred_one = 0
+    real_zero_pred_two = 0
 
-# accuracy == (TP+TN) / (TP+TN+FP+FN)
+    real_one_pred_zero = 0
+    real_one_pred_two = 0
+
+    real_two_pred_zero = 0
+    real_two_pred_one = 0
 
 
-# print(f'{ed-st}s passed \n')
+    for k in image_list:
+        st = time.time()
+        image = cv2.imread(k)
+
+        transformed = CFG.transformed(image=image)
+        transformed_img = transformed["image"].unsqueeze(0).float().to(CFG.device)
+
+        output = model(transformed_img)
+        
+        out_label = torch.argmax(output).item()
+
+        # print(f'label:{label_list[cnt]}')
+        # print(f'out:{out_label}')
+
+        #     falseCount+=1
+
+        # elif label_list[cnt] == out_label:
+        #     rightCount+=1
+
+        # if label_list[cnt] == 0 and out_label == 1:
+        #     real_zero_pred_one+=1
+        # elif label_list[cnt] == 0 and out_label == 2:
+        #     real_zero_pred_two+=1
+
+        # elif label_list[cnt] == 1 and out_label == 0:
+        #     real_one_pred_zero+=1
+        # elif label_list[cnt] == 1 and out_label == 2:
+        #     real_one_pred_two+=1
+
+        # elif label_list[cnt] == 2 and out_label == 0:
+        #     real_two_pred_zero+=1
+        # elif label_list[cnt] == 2 and out_label == 1:
+        #     real_two_pred_one+=1
+
+        if label_list[cnt] == out_label:
+            rightCount+=1
+        else:
+            falseCount+=1
+
+
+        ed = time.time()
+
+        cnt+=1
+
+        print(f'accuracy : {round(rightCount/(rightCount+falseCount+1e-10)*100,3)}%')
+
+
+
+    # accuracy == (TP+TN) / (TP+TN+FP+FN)
+
+
+    # print(f'{ed-st}s passed \n')
 
 
 

@@ -27,7 +27,7 @@ from PIL import Image
 
 
 class CFG:
-    batch_size = 256
+    batch_size = 64
     epochs = 100
     lr = 3e-4
     device = 'cuda'
@@ -100,12 +100,12 @@ class ImageDataset(Dataset):
 
         for _ in range(len(self.labels)):
             i = self.labels.popleft()
-            if i == 'mask':
+            if i == 'dog':
                 self.labels_list.append(0)
-            elif i == 'nomask':
+            elif i == 'cat':
                 self.labels_list.append(1)
-            elif i == 'wrong':
-                self.labels_list.append(2)
+            # elif i == 'wrong':
+            #     self.labels_list.append(2)
         # 이거 코드 더러운데 -> 더 깔끔하게 변환시킬 방법없는지 구상하기.
 
     def __len__(self):
