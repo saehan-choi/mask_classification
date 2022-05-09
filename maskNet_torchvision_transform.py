@@ -29,6 +29,7 @@ class CFG:
     transform = transforms.Compose([transforms.ToTensor(),
                                     transforms.Resize(img_resize)
                                     ])
+    # 여기도 train에서만 augmentation을 적용할것. validation에는 적용 X
 
 class Model(nn.Module):
     def __init__(self):
