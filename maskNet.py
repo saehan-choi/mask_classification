@@ -20,9 +20,13 @@ class CFG:
     model_pretrained = True
     model_num_class = 3
 
-    img_resize = (64, 64)
+    img_resize = (224, 224)
 
+<<<<<<< HEAD
     weight_path = './weights/train_dataset_정제_efficientnet_b0_epoch_18.pt'
+=======
+    weight_path = './weights/train_dataset_정제_efficientnet_b0_epoch_4.pt'
+>>>>>>> 0bb03036c39a02bed72351eee635af30d87e13f2
 
     transformed = A.Compose([A.Resize(img_resize[0], img_resize[1]),
                         # A.Normalize(),
@@ -42,12 +46,24 @@ class Model(nn.Module):
         return output
 
 model = Model()
+<<<<<<< HEAD
 model.load_state_dict(torch.load(CFG.weight_path))
 model.to(CFG.device)
 
 with torch.no_grad():
     model.eval()
 # tensor_img = torch.Tensor(cv2.resize(img)) -> 이런방법도 있다고합니다.
+=======
+with torch.no_grad():
+    
+    model.load_state_dict(torch.load(CFG.weight_path))
+    model.to(CFG.device)
+
+    # tensor_img = torch.Tensor(cv2.resize(img)) -> 이런방법도 있다고합니다.
+
+    model.eval()
+
+>>>>>>> 0bb03036c39a02bed72351eee635af30d87e13f2
     labels = deque([])
     image_list = []
     label_list = []
@@ -59,12 +75,21 @@ with torch.no_grad():
 
     for _ in range(len(labels)):
         i = labels.popleft()
+<<<<<<< HEAD
         if i == 'mask':
             label_list.append(0)
         elif i == 'nomask':
             label_list.append(1)
         elif i == 'wrong':
             label_list.append(2)
+=======
+        if i == 'dog':
+            label_list.append(0)
+        elif i == 'cat':
+            label_list.append(1)
+        # elif i == 'wrong':
+        #     label_list.append(2)
+>>>>>>> 0bb03036c39a02bed72351eee635af30d87e13f2
 
     falseCount = 0
     rightCount = 0
