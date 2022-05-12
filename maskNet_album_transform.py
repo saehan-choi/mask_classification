@@ -27,8 +27,9 @@ from PIL import Image
 
 
 class CFG:
+
     batch_size = 64
-    epochs = 100
+    epochs = 200
     lr = 3e-4
     device = 'cuda'
     model_name = 'efficientnet_b0'
@@ -36,6 +37,8 @@ class CFG:
     model_num_class = 3
 
     img_resize = (64, 64)
+
+    # 얼굴크기 48로도 테스트 해볼것.
 
     # train_img_path = './dataset3/train/'
     # val_img_path = './dataset3/val/'
@@ -47,14 +50,15 @@ class CFG:
 
     # 필요시 여기에 추가하면 됩니다.
     transform = A.Compose([
-                        A.Cutout(),
+                        # A.Cutout(),
                         # # 컷아웃이 오히려 문제일 수 있다.
-                        A.RandomBrightness(),
-                        A.RGBShift(),
-                        A.RandomRotate90(),
-                        A.HorizontalFlip(),
+                        # A.RandomBrightness(),
+                        # A.RGBShift(),
+                        # A.RandomRotate90(),
+                        # 나중에 rotate도 
+                        # A.HorizontalFlip(),
                         A.Resize(img_resize[0],img_resize[1]),
-                        A.Normalize(),
+                        # A.Normalize(),
                         ToTensorV2()
                         ])
 
@@ -101,15 +105,16 @@ class ImageDataset(Dataset):
                 # train 안에 폴더, val안에 폴더만 들고오면 되게만들어놨습니다.
                 #  self.labels.append(cnt)
                 # cnt+=1   cnt로 이용하여도 문제는 없음을 확인했습니다.
-
+                
+        print(self.file_list)
         for _ in range(len(self.labels)):
             i = self.labels.popleft()
-            if i == 'dog':
+            if i == 'mask':
                 self.labels_list.append(0)
-            elif i == 'cat':
+            elif i == 'nomask':
                 self.labels_list.append(1)
-            # elif i == 'wrong':
-            #     self.labels_list.append(2)
+            elif i == 'wrong':
+                self.labels_list.append(2)
         # 이거 코드 더러운데 -> 더 깔끔하게 변환시킬 방법없는지 구상하기.
 
     def __len__(self):
@@ -152,7 +157,7 @@ def train_one_epoch(model, optimizer, dataloader, epoch, train_loss_arr, device)
         outputs = model(images)
 
         loss = nn.CrossEntropyLoss()(outputs, labels)
-        
+
         loss.backward()
         optimizer.step()
         optimizer.zero_grad()
@@ -186,6 +191,7 @@ def val_one_epoch(model, optimizer, dataloader, epoch, val_loss_arr, device):
 
             bar.set_postfix(EPOCH=epoch, VAL_LOSS=epoch_loss)
         val_loss_arr.append(epoch_loss)
+        print(f'{val_loss_arr.index(min(val_loss_arr))+1}epoch 에서 loss : {min(val_loss_arr)} 입니다.')
 
 if __name__ == "__main__":
 
@@ -193,22 +199,26 @@ if __name__ == "__main__":
     val_loss_arr = []
 
     model = Model().to(CFG.device)
-    optimizer = optim.Adam(model.parameters(), lr=CFG.lr)
+    x = torch.randn(64, 3, 64, 64).to(CFG.device)
 
-    train_dataset = ImageDataset(CFG.train_img_path, transform=CFG.transform)
-    train_loader = DataLoader(train_dataset, shuffle=True, batch_size=CFG.batch_size)
+    print(model(x))
 
-    val_dataset = ImageDataset(CFG.val_img_path, transform=CFG.transform_val)
-    val_loader = DataLoader(val_dataset, shuffle=False, batch_size=CFG.batch_size)
+    # optimizer = optim.Adam(model.parameters(), lr=CFG.lr)
 
-    for epoch in range(1, CFG.epochs+1):
-        train_one_epoch(model, optimizer, train_loader, epoch, train_loss_arr, CFG.device)
-        val_one_epoch(model, optimizer, val_loader, epoch, val_loss_arr, CFG.device)
-        torch.save(model.state_dict(), CFG.weight_save_path+f'train_dataset_정제_{CFG.model_name}_epoch_{epoch}.pt')
+    # train_dataset = ImageDataset(CFG.train_img_path, transform=CFG.transform)
+    # train_loader = DataLoader(train_dataset, shuffle=True, batch_size=CFG.batch_size)
 
-        print(train_loss_arr)
-        print(val_loss_arr)
+    # val_dataset = ImageDataset(CFG.val_img_path, transform=CFG.transform_val)
+    # val_loader = DataLoader(val_dataset, shuffle=False, batch_size=CFG.batch_size)
 
-    # 여기서 albumentations augmentation 기법 적용해보기.
-    # -> 나중에 도움된다. -> 완료
+    # for epoch in range(1, CFG.epochs+1):
+    #     train_one_epoch(model, optimizer, train_loader, epoch, train_loss_arr, CFG.device)
+    #     val_one_epoch(model, optimizer, val_loader, epoch, val_loss_arr, CFG.device)
+    #     torch.save(model.state_dict(), CFG.weight_save_path+f'dataset4_{CFG.model_name}_epoch_{epoch}.pt')
+
+    #     print(train_loss_arr)
+    #     print(val_loss_arr)
+
+    # # 여기서 albumentations augmentation 기법 적용해보기.
+    # # -> 나중에 도움된다. -> 완료
  

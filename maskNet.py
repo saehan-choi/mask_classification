@@ -20,20 +20,17 @@ class CFG:
     model_pretrained = True
     model_num_class = 3
 
-    img_resize = (224, 224)
+    img_resize = (64, 64)
 
-<<<<<<< HEAD
-    weight_path = './weights/train_dataset_정제_efficientnet_b0_epoch_18.pt'
-=======
-    weight_path = './weights/train_dataset_정제_efficientnet_b0_epoch_4.pt'
->>>>>>> 0bb03036c39a02bed72351eee635af30d87e13f2
+    weight_path = './weights/dataset4_efficientnet_b0_epoch_113.pt'
 
     transformed = A.Compose([A.Resize(img_resize[0], img_resize[1]),
                         # A.Normalize(),
                         ToTensorV2()
                         ])
-    
-    testset_data_path = './dataset3/test/'
+
+    # testset_data_path = './dataset3/test/'
+    testset_data_path = './dataset4/val/'
 
 class Model(nn.Module):
     def __init__(self):
@@ -46,24 +43,12 @@ class Model(nn.Module):
         return output
 
 model = Model()
-<<<<<<< HEAD
 model.load_state_dict(torch.load(CFG.weight_path))
 model.to(CFG.device)
 
 with torch.no_grad():
     model.eval()
-# tensor_img = torch.Tensor(cv2.resize(img)) -> 이런방법도 있다고합니다.
-=======
-with torch.no_grad():
-    
-    model.load_state_dict(torch.load(CFG.weight_path))
-    model.to(CFG.device)
-
     # tensor_img = torch.Tensor(cv2.resize(img)) -> 이런방법도 있다고합니다.
-
-    model.eval()
-
->>>>>>> 0bb03036c39a02bed72351eee635af30d87e13f2
     labels = deque([])
     image_list = []
     label_list = []
@@ -75,36 +60,16 @@ with torch.no_grad():
 
     for _ in range(len(labels)):
         i = labels.popleft()
-<<<<<<< HEAD
         if i == 'mask':
             label_list.append(0)
         elif i == 'nomask':
             label_list.append(1)
         elif i == 'wrong':
             label_list.append(2)
-=======
-        if i == 'dog':
-            label_list.append(0)
-        elif i == 'cat':
-            label_list.append(1)
-        # elif i == 'wrong':
-        #     label_list.append(2)
->>>>>>> 0bb03036c39a02bed72351eee635af30d87e13f2
 
     falseCount = 0
     rightCount = 0
     cnt = 0
-
-
-    real_zero_pred_one = 0
-    real_zero_pred_two = 0
-
-    real_one_pred_zero = 0
-    real_one_pred_two = 0
-
-    real_two_pred_zero = 0
-    real_two_pred_one = 0
-
 
     for k in image_list:
         st = time.time()
@@ -114,31 +79,11 @@ with torch.no_grad():
         transformed_img = transformed["image"].unsqueeze(0).float().to(CFG.device)
 
         output = model(transformed_img)
-        
+
         out_label = torch.argmax(output).item()
 
         # print(f'label:{label_list[cnt]}')
         # print(f'out:{out_label}')
-
-        #     falseCount+=1
-
-        # elif label_list[cnt] == out_label:
-        #     rightCount+=1
-
-        # if label_list[cnt] == 0 and out_label == 1:
-        #     real_zero_pred_one+=1
-        # elif label_list[cnt] == 0 and out_label == 2:
-        #     real_zero_pred_two+=1
-
-        # elif label_list[cnt] == 1 and out_label == 0:
-        #     real_one_pred_zero+=1
-        # elif label_list[cnt] == 1 and out_label == 2:
-        #     real_one_pred_two+=1
-
-        # elif label_list[cnt] == 2 and out_label == 0:
-        #     real_two_pred_zero+=1
-        # elif label_list[cnt] == 2 and out_label == 1:
-        #     real_two_pred_one+=1
 
         if label_list[cnt] == out_label:
             rightCount+=1
@@ -150,7 +95,7 @@ with torch.no_grad():
 
         cnt+=1
 
-        print(f'accuracy : {round(rightCount/(rightCount+falseCount+1e-10)*100,3)}%')
+        print(f'accuracy : {round(rightCount/(rightCount+falseCount+1e-10)*100,2)}%')
 
 
 
