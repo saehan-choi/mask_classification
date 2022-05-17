@@ -199,26 +199,26 @@ if __name__ == "__main__":
     val_loss_arr = []
 
     model = Model().to(CFG.device)
-    x = torch.randn(64, 3, 64, 64).to(CFG.device)
+    # x = torch.randn(64, 3, 64, 64).to(CFG.device)
 
-    print(model(x))
+    # print(model(x))
 
-    # optimizer = optim.Adam(model.parameters(), lr=CFG.lr)
+    optimizer = optim.Adam(model.parameters(), lr=CFG.lr)
 
-    # train_dataset = ImageDataset(CFG.train_img_path, transform=CFG.transform)
-    # train_loader = DataLoader(train_dataset, shuffle=True, batch_size=CFG.batch_size)
+    train_dataset = ImageDataset(CFG.train_img_path, transform=CFG.transform)
+    train_loader = DataLoader(train_dataset, shuffle=True, batch_size=CFG.batch_size)
 
-    # val_dataset = ImageDataset(CFG.val_img_path, transform=CFG.transform_val)
-    # val_loader = DataLoader(val_dataset, shuffle=False, batch_size=CFG.batch_size)
+    val_dataset = ImageDataset(CFG.val_img_path, transform=CFG.transform_val)
+    val_loader = DataLoader(val_dataset, shuffle=False, batch_size=CFG.batch_size)
 
-    # for epoch in range(1, CFG.epochs+1):
-    #     train_one_epoch(model, optimizer, train_loader, epoch, train_loss_arr, CFG.device)
-    #     val_one_epoch(model, optimizer, val_loader, epoch, val_loss_arr, CFG.device)
-    #     torch.save(model.state_dict(), CFG.weight_save_path+f'dataset4_{CFG.model_name}_epoch_{epoch}.pt')
+    for epoch in range(1, CFG.epochs+1):
+        train_one_epoch(model, optimizer, train_loader, epoch, train_loss_arr, CFG.device)
+        val_one_epoch(model, optimizer, val_loader, epoch, val_loss_arr, CFG.device)
+        torch.save(model.state_dict(), CFG.weight_save_path+f'dataset4_{CFG.model_name}_epoch_{epoch}.pt')
 
-    #     print(train_loss_arr)
-    #     print(val_loss_arr)
+        print(train_loss_arr)
+        print(val_loss_arr)
 
-    # # 여기서 albumentations augmentation 기법 적용해보기.
-    # # -> 나중에 도움된다. -> 완료
+    # 여기서 albumentations augmentation 기법 적용해보기.
+    # -> 나중에 도움된다. -> 완료
  

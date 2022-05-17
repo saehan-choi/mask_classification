@@ -25,9 +25,9 @@ class CFG:
     weight_path = './weights/dataset4_efficientnet_b0_epoch_113.pt'
 
     transformed = A.Compose([A.Resize(img_resize[0], img_resize[1]),
-                        # A.Normalize(),
-                        ToTensorV2()
-                        ])
+                            # A.Normalize(),
+                            ToTensorV2()
+                            ])
 
     # testset_data_path = './dataset3/test/'
     testset_data_path = './dataset4/val/'
@@ -89,22 +89,7 @@ with torch.no_grad():
             rightCount+=1
         else:
             falseCount+=1
-
-
         ed = time.time()
-
         cnt+=1
 
         print(f'accuracy : {round(rightCount/(rightCount+falseCount+1e-10)*100,2)}%')
-
-
-
-    # accuracy == (TP+TN) / (TP+TN+FP+FN)
-
-
-    # print(f'{ed-st}s passed \n')
-
-
-
-
-
