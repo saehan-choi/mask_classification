@@ -365,3 +365,14 @@
 
 	  (classifier): Linear(in_features=1280, out_features=1000, bias=True)
 	)
+
+
+![image](https://user-images.githubusercontent.com/70372577/169232597-40cdfe9f-61c2-4ca3-8c54-d8109b129075.png)
+
+밑바닥부터 구현한 CrossEntropyLoss, FocalLoss
+
+![image](https://user-images.githubusercontent.com/70372577/169232660-cebe9ef2-7a29-4d9c-b816-269bcaaa9fbc.png)
+
+pytorch를 이용한 CrossEntropyLoss, 및 FocalLoss
+
+둘의 loss차이가 없음을 알 수 있다 !!!!
