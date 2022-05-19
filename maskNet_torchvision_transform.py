@@ -71,6 +71,9 @@ class ImageDataset(Dataset):
 
         return image, label
 
+class FocalLoss():
+    pass
+
 
 def train_one_epoch(model, optimizer, dataloader, epoch, train_loss_arr, device):
     model.train()

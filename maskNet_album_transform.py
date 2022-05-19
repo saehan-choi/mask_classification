@@ -142,6 +142,17 @@ class ImageDataset(Dataset):
 
         return image, label
 
+class focalLoss():
+    def __init__(self, alpha, weight):
+        self.alpha = alpha
+        self.weight = weight
+
+    def __forward__(self):
+        # weight = (1-p)^r  가 되야함
+        # 본문에서는 alpha = 0.25 r = 2 로 잡음
+        self.alpha * self.weight * nn.CrossEntropyLoss()
+
+
 def train_one_epoch(model, optimizer, dataloader, epoch, train_loss_arr, device):
     model.train()
     dataset_size = 0

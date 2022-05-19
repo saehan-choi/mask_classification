@@ -82,7 +82,7 @@ with torch.no_grad():
     # img_cat.pop
 
     print(img.size())
-    
+
 
 
 
