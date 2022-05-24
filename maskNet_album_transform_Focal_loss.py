@@ -106,7 +106,6 @@ class ImageDataset(Dataset):
                 #  self.labels.append(cnt)
                 # cnt+=1   cnt로 이용하여도 문제는 없음을 확인했습니다.
                 
-        print(self.file_list)
         for _ in range(len(self.labels)):
             i = self.labels.popleft()
             if i == 'mask':
@@ -142,16 +141,25 @@ class ImageDataset(Dataset):
 
         return image, label
 
-class focalLoss():
-    def __init__(self, alpha, weight):
+class FocalLoss(nn.Module):
+    def __init__(self, alpha=0.25, gamma=2, logits=False, mean=True):
+        super(FocalLoss, self).__init__()
         self.alpha = alpha
-        self.weight = weight
+        self.gamma = gamma
+        self.logits = logits
+        self.mean = mean
 
-    def __forward__(self):
-        # weight = (1-p)^r  가 되야함
-        # 본문에서는 alpha = 0.25 r = 2 로 잡음
-        self.alpha * self.weight * nn.CrossEntropyLoss()
+    def forward(self, inputs, targets):
 
+        CELoss = nn.CrossEntropyLoss()(inputs, targets)
+        # CELoss = -ln(pt) 이니깐 pt = e^(-CELoss)
+        pt = torch.exp(-CELoss)
+        FocalLoss = self.alpha*((1-pt)**self.gamma) * CELoss
+        
+        if self.mean:
+            return torch.mean(FocalLoss)
+        else:
+            return FocalLoss
 
 def train_one_epoch(model, optimizer, dataloader, epoch, train_loss_arr, device):
     model.train()
@@ -167,7 +175,7 @@ def train_one_epoch(model, optimizer, dataloader, epoch, train_loss_arr, device)
         batch_size = images.size(0)
         outputs = model(images)
 
-        loss = nn.CrossEntropyLoss()(outputs, labels)
+        loss = FocalLoss()(outputs, labels)
 
         loss.backward()
         optimizer.step()
@@ -194,7 +202,7 @@ def val_one_epoch(model, optimizer, dataloader, epoch, val_loss_arr, device):
 
             batch_size = images.size(0)
             outputs = model(images)
-            loss = nn.CrossEntropyLoss()(outputs, labels)
+            loss = FocalLoss()(outputs, labels)
 
             running_loss += loss.item()*batch_size
             dataset_size += batch_size

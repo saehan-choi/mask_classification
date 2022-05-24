@@ -35,13 +35,14 @@
 
 # 둘의 시간복잡도차이는 거의 없다 하지만 미세하게 deque가 빠르긴하다. popleft 할땐 reverse 후에 pop 해도 무관할듯 ㅎ
 
+
 import torch
 import torch.nn as nn
 
-import math
+# import math
 
-input    = torch.tensor([0.1, 0.8, 0.1]).unsqueeze(0).float()
-output = torch.tensor([1]).long()
+# input    = torch.tensor([0.1, 0.8, 0.1]).unsqueeze(0).float()
+# output = torch.tensor([1]).long()
 
 # def softmax(input, target):
 #     exponential_array = []
@@ -88,6 +89,9 @@ output = torch.tensor([1]).long()
 # print(f'CELoss:{loss.__forward__()}')
 
 
+# nn.Module 에서는 class에서 forward 함수를 만들고 데이터를 넣어주면 
+# 값을 반환한다 ㅎ
+
 class FocalLoss(nn.Module):
     def __init__(self, alpha=0.25, gamma=2, logits=False, mean=True):
         super(FocalLoss, self).__init__()
@@ -116,4 +120,3 @@ print(f'FCLoss:{loss}')
 
 loss = nn.CrossEntropyLoss()(input, output)
 print(f'CELoss:{loss}')
-

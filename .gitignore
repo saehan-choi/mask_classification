@@ -6,3 +6,4 @@ weights/
 dataset3.zip
 train_미검수데이터_64이상이미지_from_dataset3/
 __pycache__/
+chromedriver.exe

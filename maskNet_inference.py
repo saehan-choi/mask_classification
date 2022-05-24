@@ -22,7 +22,7 @@ class CFG:
 
     img_resize = (64, 64)
 
-    weight_path = './weights/dataset4_efficientnet_b0_epoch_113.pt'
+    weight_path = './weights/dataset4_efficientnet_b0_epoch_117.pt'
 
     transformed = A.Compose([A.Resize(img_resize[0], img_resize[1]),
                             # A.Normalize(),
@@ -30,7 +30,7 @@ class CFG:
                             ])
 
     # testset_data_path = './dataset3/test/'
-    testset_data_path = './dataset4/val/'
+    testset_data_path = './dataset4/train/'
 
 class Model(nn.Module):
     def __init__(self):
@@ -84,12 +84,22 @@ with torch.no_grad():
 
         # print(f'label:{label_list[cnt]}')
         # print(f'out:{out_label}')
+        
+        # if label_list[cnt] == out_label:
+        #     rightCount+=1
+        # else:
+        #     falseCount+=1
 
-        if label_list[cnt] == out_label:
-            rightCount+=1
-        else:
-            falseCount+=1
+        if label_list[cnt] == 2:
+            # wrong에 대해서만 평가하겠다 ㅎ
+            if label_list[cnt] == out_label:
+                rightCount+=1
+            else:
+                falseCount+=1
+            print(f'wrong accuracy : {round(rightCount/(rightCount+falseCount+1e-10)*100,2)}%')
+            # 이렇게하면 개별 클래스 정확도 구할수있네용
+
         ed = time.time()
         cnt+=1
+        # print(f'accuracy : {round(rightCount/(rightCount+falseCount+1e-10)*100,2)}%')
 
-        print(f'accuracy : {round(rightCount/(rightCount+falseCount+1e-10)*100,2)}%')
