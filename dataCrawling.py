@@ -39,7 +39,6 @@ while True: #break가 일어날 때 까지 계속 반복
     last_height = new_height ##last_height update
 
 i=0
-
 list = driver.find_elements_by_css_selector("img.rg_i.Q4LuWd")##thumnails list
 print(len(list)) #print number of thumnails
 
@@ -54,3 +53,4 @@ for img in list:
 
     except: #저장이 불가능할경우 그냥  pass
         pass
+

@@ -10,3 +10,6 @@ chromedriver.exe
 dataset5(mask_nomask)/
 crawling_dataset/
 __pycache__/
+faceImg/
+resultImg/
+
