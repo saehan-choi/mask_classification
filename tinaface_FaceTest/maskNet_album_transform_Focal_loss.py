@@ -86,14 +86,13 @@ class Model(nn.Module):
         output = self.model(x)
         return output
 
-
 class ImageDataset(Dataset):
     def __init__(self, file_list, transform):
         self.transform = transform
         self.file_list = []
         self.labels_list = []
         self.labels = deque([])
-        
+
         # cnt = 0
         for path in os.listdir(file_list):
             full_path1 = os.path.join(file_list, path)

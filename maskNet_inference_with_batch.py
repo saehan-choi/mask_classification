@@ -24,21 +24,19 @@ class CFG:
     model_num_class = 3
 
     img_resize = (64, 64)
-    weight_path = './weights/dataset4_efficientnet_b0_epoch_113.pt'
+    weight_path = './weights/dataset4_efficientnet_b0_epoch_116.pt'
 
     transformed = A.Compose([A.Resize(img_resize[0], img_resize[1]),
                         # A.Normalize(),
                         ToTensorV2()
                         ])
 
-    # testset_data_path = './dataset3/test/'
     testset_data_path = './dataset4/val/nomask/*.jpg'
 
 class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
         self.model = timm.create_model(CFG.model_name, pretrained=CFG.model_pretrained, num_classes=CFG.model_num_class)
-        # print(f'Model_structure: {self.model}')
 
     def forward(self,x):
         output = self.model(x)
@@ -58,33 +56,39 @@ model.to(CFG.device)
 # img_arr = np.array([])
 
 img_arr = []
-
+# 0.35~0.36s
 with torch.no_grad():
-    model.eval()
-    file_names = glob(CFG.testset_data_path)
-    
-    img_cat = torch.ones(1,3,64,64).float().to(CFG.device)
-
-    print(img_cat.size())
-
-    for file_name in file_names:
+    while True:
+        model.eval()
         st = time.time()
-        img = cv2.imread(file_name, cv2.IMREAD_COLOR)
+        file_names = glob(CFG.testset_data_path)
 
-        transformed = CFG.transformed(image=img)
-        img = transformed['image'].unsqueeze(0).float().to(CFG.device)
+        arr = []
+        # img_cat = torch.ones(1,3,64,64).float().to(CFG.device)
+        # img_cat = torch.zeros(1,3,64,64).to(CFG.device)
+        # print(img_cat.size())
 
-        # img = torch.stack(img, dim=0)
-        img = torch.cat((img_cat, img), dim=0)
-        img_cat = img
+        for file_name in file_names[:500]:
+            img = cv2.imread(file_name, cv2.IMREAD_COLOR)
 
-    # img = img[0]
-    # img_cat.pop
+            transformed = CFG.transformed(image=img)
+            img = transformed['image'].unsqueeze(0).float().to(CFG.device)
+            
+            arr.append(img)
+            # img_cat = torch.cat((img_cat, img), dim=0)
+            # print(img_cat.size())
 
-    print(img.size())
+        img_cat = torch.cat(arr, 0)
+        # img_cat = img_cat[1:]
+        ed = time.time()
+        print(img_cat.size())
+        print(f'loading time:{ed-st}s')
 
 
-
+        st = time.time()
+        k = model(img_cat).size()
+        ed = time.time()
+        print(f'inference time{ed-st}s')
 
 # tensor = model(img)
         

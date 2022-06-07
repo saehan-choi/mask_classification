@@ -22,7 +22,7 @@ class CFG:
 
     img_resize = (64, 64)
 
-    weight_path = './weights/dataset4_efficientnet_b0_epoch_117.pt'
+    weight_path = './weights/dataset4_efficientnet_b0_epoch_116.pt'
 
     transformed = A.Compose([A.Resize(img_resize[0], img_resize[1]),
                             # A.Normalize(),
@@ -81,23 +81,21 @@ with torch.no_grad():
         output = model(transformed_img)
 
         out_label = torch.argmax(output).item()
-
-        # print(f'label:{label_list[cnt]}')
-        # print(f'out:{out_label}')
         
-        # if label_list[cnt] == out_label:
-        #     rightCount+=1
-        # else:
-        #     falseCount+=1
+        if label_list[cnt] == 0:
+            f = open('./mask_label.txt', 'a')
+            f.write(f'{output.tolist()[0]}/')
+            f.close()
 
-        if label_list[cnt] == 2:
-            # wrong에 대해서만 평가하겠다 ㅎ
-            if label_list[cnt] == out_label:
-                rightCount+=1
-            else:
-                falseCount+=1
-            print(f'wrong accuracy : {round(rightCount/(rightCount+falseCount+1e-10)*100,2)}%')
-            # 이렇게하면 개별 클래스 정확도 구할수있네용
+        elif label_list[cnt] == 1:
+            f = open('./nomask_label.txt', 'a')
+            f.write(f'{output.tolist()[0]}/')
+            f.close()
+
+        elif label_list[cnt] == 2:
+            f = open('./wrong_label.txt', 'a')
+            f.write(f'{output.tolist()[0]}/')
+            f.close()
 
         ed = time.time()
         cnt+=1
