@@ -10,7 +10,10 @@ import time
 
 import random
 
-num= random.random()
+# example of insert your address : CRAWLING/crawling_dataset2
+# изображение без маски -> 이게 좀 많았음
+
+num = random.random()
 options = webdriver.ChromeOptions()
 options.add_experimental_option("excludeSwitches", ["enable-logging"])
 driver = webdriver.Chrome(options=options)
@@ -28,7 +31,7 @@ last_height = driver.execute_script("return document.body.scrollHeight") #initia
 while True: #break가 일어날 때 까지 계속 반복
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);") #페이지 스크롤 시키기
 
-    time.sleep(1)
+    time.sleep(1.5)
 
     new_height = driver.execute_script("return document.body.scrollHeight") ## update new_height
     if new_height == last_height:#이전 스크롤 길이와 현재의 스크롤 길이를 비교
@@ -42,14 +45,14 @@ i=0
 list = driver.find_elements_by_css_selector("img.rg_i.Q4LuWd")##thumnails list
 print(len(list)) #print number of thumnails
 
-
 address = str(input("insert your address : "))# 파일을 저장할 주소를 입력받기
 for img in list:
     i += 1
     try:
         imgurl = img.get_attribute("src") # get thumnails address list
         # time.sleep(1)
-        urllib.request.urlretrieve(imgurl,str(num)[2:]+address+"/"+str(keyword)+str(i)+".jpg") # download images in address folder
+
+        urllib.request.urlretrieve(imgurl,address+"/"+str(keyword)+str(i)+".jpg") # download images in address folder
 
     except: #저장이 불가능할경우 그냥  pass
         pass

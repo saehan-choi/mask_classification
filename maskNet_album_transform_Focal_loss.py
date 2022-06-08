@@ -1,9 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torchvision.transforms as transforms
-
-import numpy as np
 
 import timm
 import os
@@ -19,7 +16,9 @@ import random
 
 from collections import deque
 
-from PIL import Image
+
+import matplotlib.pyplot as plt
+
 
 # mask  --> 0
 # nomask --> 1
@@ -52,8 +51,8 @@ class CFG:
     transform = A.Compose([
                         # A.Cutout(),
                         # # 컷아웃이 오히려 문제일 수 있다.
-                        # A.RandomBrightness(),
-                        # A.RGBShift(),
+                        A.RandomBrightness(),
+                        A.RGBShift(),
                         # A.RandomRotate90(),
                         # 나중에 rotate도 
                         # A.HorizontalFlip(),
@@ -76,6 +75,22 @@ def set_seed(random_seed):
 
 set_seed(42)
 
+def subplotImg(img1, img2):
+    
+    fig = plt.figure()
+    rows = 1
+    cols = 2
+
+    ax1 = fig.add_subplot(rows, cols, 1)
+    ax1.imshow(cv2.cvtColor(img1, cv2.COLOR_BGR2RGB))
+    ax1.axis('off')
+
+    ax2 = fig.add_subplot(rows, cols, 2)
+    ax2.imshow(cv2.cvtColor(img2, cv2.COLOR_BGR2RGB))
+    ax2.axis('off')
+
+    plt.show()
+
 class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
@@ -93,7 +108,7 @@ class ImageDataset(Dataset):
         self.file_list = []
         self.labels_list = []
         self.labels = deque([])
-        
+
         # cnt = 0
         for path in os.listdir(file_list):
             full_path1 = os.path.join(file_list, path)
@@ -105,7 +120,7 @@ class ImageDataset(Dataset):
                 # train 안에 폴더, val안에 폴더만 들고오면 되게만들어놨습니다.
                 #  self.labels.append(cnt)
                 # cnt+=1   cnt로 이용하여도 문제는 없음을 확인했습니다.
-                
+
         for _ in range(len(self.labels)):
             i = self.labels.popleft()
             if i == 'mask':
@@ -126,18 +141,18 @@ class ImageDataset(Dataset):
 
         label = self.labels_list[index]
 
-        image = cv2.imread(img_path, cv2.IMREAD_COLOR)
+        image_ = cv2.imread(img_path, cv2.IMREAD_COLOR)
         
-        # cv2.imshow('kk', image)
-        # cv2.waitKey(0)
-        # print(f'label:{label}')
-
         if self.transform:
-            transformed = self.transform(image=image)
+            transformed = self.transform(image=image_)
             image = transformed['image']
             # 여기는 transform이고,, 저기는 CFG transform이고 흠.....고쳐라.
         else:
             pass
+
+        # img1 = image.copy()            
+        # img2 = image.permute(1,2,0).numpy()
+        # subplotImg(img1, img2)
 
         return image, label
 
@@ -202,7 +217,7 @@ def val_one_epoch(model, optimizer, dataloader, epoch, val_loss_arr, device):
 
             batch_size = images.size(0)
             outputs = model(images)
-            loss = FocalLoss()(outputs, labels)
+            loss = nn.CrossEntropyLoss()(outputs, labels)
 
             running_loss += loss.item()*batch_size
             dataset_size += batch_size
@@ -233,7 +248,7 @@ if __name__ == "__main__":
     for epoch in range(1, CFG.epochs+1):
         train_one_epoch(model, optimizer, train_loader, epoch, train_loss_arr, CFG.device)
         val_one_epoch(model, optimizer, val_loader, epoch, val_loss_arr, CFG.device)
-        torch.save(model.state_dict(), CFG.weight_save_path+f'dataset4_{CFG.model_name}_epoch_{epoch}.pt')
+        torch.save(model.state_dict(), CFG.weight_save_path+f'dataset3_{CFG.model_name}_epoch_{epoch}.pt')
 
         print(train_loss_arr)
         print(val_loss_arr)
