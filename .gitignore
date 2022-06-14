@@ -9,7 +9,6 @@ __pycache__/
 chromedriver.exe
 dataset5(mask_nomask)/
 crawling_dataset/
-__pycache__/
 faceImg/
 resultImg/
 
@@ -18,3 +17,5 @@ tinaface_FaceTest/
 0.7threadhold_images/
 crawling_dataset2/
 
+CRAWLING/
+tinaface_FaceTest/

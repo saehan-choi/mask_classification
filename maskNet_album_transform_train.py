@@ -190,7 +190,7 @@ def train_one_epoch(model, optimizer, dataloader, epoch, train_loss_arr, device)
         batch_size = images.size(0)
         outputs = model(images)
 
-        loss = FocalLoss()(outputs, labels)
+        loss = nn.CrossEntropyLoss()(outputs, labels)
 
         loss.backward()
         optimizer.step()
@@ -248,7 +248,7 @@ if __name__ == "__main__":
     for epoch in range(1, CFG.epochs+1):
         train_one_epoch(model, optimizer, train_loader, epoch, train_loss_arr, CFG.device)
         val_one_epoch(model, optimizer, val_loader, epoch, val_loss_arr, CFG.device)
-        torch.save(model.state_dict(), CFG.weight_save_path+f'dataset3_{CFG.model_name}_epoch_{epoch}.pt')
+        torch.save(model.state_dict(), CFG.weight_save_path+f'ADD_DATASET{CFG.model_name}_epoch_{epoch}.pt')
 
         print(train_loss_arr)
         print(val_loss_arr)

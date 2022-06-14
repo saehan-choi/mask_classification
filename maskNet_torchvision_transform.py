@@ -101,6 +101,7 @@ def train_one_epoch(model, optimizer, dataloader, epoch, train_loss_arr, device)
         bar.set_postfix(EPOCH=epoch, TRAIN_LOSS=epoch_loss)
     train_loss_arr.append(epoch_loss)
 
+
 def val_one_epoch(model, optimizer, dataloader, epoch, val_loss_arr, device):
     model.eval()
     dataset_size = 0
@@ -144,3 +145,4 @@ if __name__ == "__main__":
 
     print(train_loss_arr)
     print(val_loss_arr)
+
