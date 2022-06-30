@@ -57,3 +57,7 @@ for img in list:
     except: #저장이 불가능할경우 그냥  pass
         pass
 
+
+
+# 이진수변환이 가능한지?
+# passenger service agent at jfk airport

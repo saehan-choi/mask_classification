@@ -31,9 +31,9 @@ class CFG:
     epochs = 200
     lr = 3e-4
     device = 'cuda'
-    model_name = 'efficientnet_b0'
+    model_name = 'efficientnet_b6'
     model_pretrained = True
-    model_num_class = 3
+    model_num_class = 4
 
     img_resize = (64, 64)
 
@@ -55,7 +55,7 @@ class CFG:
                         A.RGBShift(),
                         # A.RandomRotate90(),
                         # 나중에 rotate도 
-                        # A.HorizontalFlip(),
+                        A.HorizontalFlip(),
                         A.Resize(img_resize[0],img_resize[1]),
                         # A.Normalize(),
                         ToTensorV2()
@@ -95,7 +95,6 @@ class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
         self.model = timm.create_model(CFG.model_name, pretrained=CFG.model_pretrained, num_classes=CFG.model_num_class)
-        # print(f'Model_structure: {self.model}')
 
     def forward(self,x):
         output = self.model(x)
@@ -109,7 +108,6 @@ class ImageDataset(Dataset):
         self.labels_list = []
         self.labels = deque([])
 
-        # cnt = 0
         for path in os.listdir(file_list):
             full_path1 = os.path.join(file_list, path)
             for path2 in os.listdir(full_path1):
@@ -129,16 +127,15 @@ class ImageDataset(Dataset):
                 self.labels_list.append(1)
             elif i == 'wrong':
                 self.labels_list.append(2)
-        # 이거 코드 더러운데 -> 더 깔끔하게 변환시킬 방법없는지 구상하기.
+            elif i == 'blind':
+                self.labels_list.append(3)
+
 
     def __len__(self):
         return len(self.file_list)
 
     def __getitem__(self, index):
-        # print(f'index:{index}')
-        # print(f'labelList{len(self.labels_list)}')
         img_path = self.file_list[index]
-
         label = self.labels_list[index]
 
         image_ = cv2.imread(img_path, cv2.IMREAD_COLOR)
@@ -146,13 +143,8 @@ class ImageDataset(Dataset):
         if self.transform:
             transformed = self.transform(image=image_)
             image = transformed['image']
-            # 여기는 transform이고,, 저기는 CFG transform이고 흠.....고쳐라.
         else:
             pass
-
-        # img1 = image.copy()            
-        # img2 = image.permute(1,2,0).numpy()
-        # subplotImg(img1, img2)
 
         return image, label
 
@@ -233,10 +225,6 @@ if __name__ == "__main__":
     val_loss_arr = []
 
     model = Model().to(CFG.device)
-    # x = torch.randn(64, 3, 64, 64).to(CFG.device)
-
-    # print(model(x))
-
     optimizer = optim.Adam(model.parameters(), lr=CFG.lr)
 
     train_dataset = ImageDataset(CFG.train_img_path, transform=CFG.transform)
@@ -248,7 +236,7 @@ if __name__ == "__main__":
     for epoch in range(1, CFG.epochs+1):
         train_one_epoch(model, optimizer, train_loader, epoch, train_loss_arr, CFG.device)
         val_one_epoch(model, optimizer, val_loader, epoch, val_loss_arr, CFG.device)
-        torch.save(model.state_dict(), CFG.weight_save_path+f'ADD_DATASET{CFG.model_name}_epoch_{epoch}.pt')
+        torch.save(model.state_dict(), CFG.weight_save_path+f'06-15-{CFG.model_name}_epoch_{epoch}.pt')
 
         print(train_loss_arr)
         print(val_loss_arr)
