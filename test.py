@@ -1,58 +1,51 @@
-# import matplotlib.pyplot as plt
+import timm
+import torch
+import torch.nn as nn
 
-# # plt.plot([1, 1, 1, 1], [2, 3, 5, 10])
-# # plt.show()
+from collections import deque
 
-# print(list(range(0, 100, 10)))
+import albumentations as A
+from albumentations.pytorch.transforms import ToTensorV2
 
+import cv2
+import os
 
-# import os
+import time
 
-# path = './dataset5(mask_nomask)/val/aa/'
-# k=os.listdir(path)
+class CFG:
 
-# for idx, i in enumerate(k):
-#     print(f'i:{path+i}')
-#     print(f"idx:{path+str(idx)+'.jpg'}")
-    
-#     os.rename(path+i, path+str(idx)+'.jpg')
+    device = 'cuda'
 
+    model_name = 'efficientnet_b0'
+    model_pretrained = True
+    model_num_class = 4
 
-# import random
+    img_resize = (256, 256)
 
-# num= random.random()
+    weight_path = './weights/07-01_size224_efficientnet_b0_epoch_3.pt'
 
-# print(str(num)[2:])
+    transformed = A.Compose([A.Resize(img_resize[0], img_resize[1]),
+                            # A.Normalize(),
+                            ToTensorV2()
+                            ])
 
-def solution(n, arr1, arr2):
-    answer = []
+    # testset_data_path = './dataset3/test/'
+    testset_data_path = './dataset4/val/'
 
-    for a1, a2 in zip(arr1, arr2):
-        cnt = 0
-        result= ""
-        for k in range(n):
-            true = int(tenTotwo(a1, n)[cnt]) or int(tenTotwo(a2, n)[cnt])
-            if true ==1:
-                result+="#"
-            else:
-                result+=" "
-            cnt+=1
-        answer.append(result)
-        print(answer)
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.model = timm.create_model(CFG.model_name, checkpoint_path=CFG.weight_path, num_classes=CFG.model_num_class)
+        
+        # print(f'Model_structure: {self.model}')
 
-    return answer
+    def forward(self,x):
+        output = self.model(x)
+        return output
 
-def tenTotwo(input, num):
-    return bin(input)[2:].zfill(num)
+model = Model()
+# model.load_state_dict(torch.load(CFG.weight_path))
+model.to(CFG.device)
 
-# 정수를 저장한 배열, arr 에서 가장 작은 수를 제거한 배열을 리턴하는 함수, solution을 완성해주세요. 단, 리턴하려는 배열이 빈 배열인 경우엔 배열에 -1을 채워 리턴하세요. 예를들어 arr이 [4,3,2,1]인 경우는 [4,3,2]를 리턴 하고, [10]면 [-1]을 리턴 합니다.
-
-# 제한 조건
-# arr은 길이 1 이상인 배열입니다.
-# 인덱스 i, j에 대해 i ≠ j이면 arr[i] ≠ arr[j] 입니다.
-
-arr1 = [1,2,3,4,5]
-
-arr2 = [5,2,6,2,3]
-
-solution(5, arr1, arr2)
+print(model)
+# torch.randn()

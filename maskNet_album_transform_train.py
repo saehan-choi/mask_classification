@@ -27,15 +27,17 @@ import matplotlib.pyplot as plt
 
 class CFG:
 
-    batch_size = 64
+    batch_size = 32
     epochs = 200
     lr = 3e-4
     device = 'cuda'
-    model_name = 'efficientnet_b6'
+    model_name = 'efficientnet_b0'
     model_pretrained = True
     model_num_class = 4
 
-    img_resize = (64, 64)
+    # img_resize = (64, 64)
+    # 224로 테스트 한번 해보겠습니다.
+    img_resize = (256, 256)
 
     # 얼굴크기 48로도 테스트 해볼것.
 
@@ -148,6 +150,7 @@ class ImageDataset(Dataset):
 
         return image, label
 
+
 class FocalLoss(nn.Module):
     def __init__(self, alpha=0.25, gamma=2, logits=False, mean=True):
         super(FocalLoss, self).__init__()
@@ -225,6 +228,7 @@ if __name__ == "__main__":
     val_loss_arr = []
 
     model = Model().to(CFG.device)
+    print(model)
     optimizer = optim.Adam(model.parameters(), lr=CFG.lr)
 
     train_dataset = ImageDataset(CFG.train_img_path, transform=CFG.transform)
@@ -236,7 +240,9 @@ if __name__ == "__main__":
     for epoch in range(1, CFG.epochs+1):
         train_one_epoch(model, optimizer, train_loader, epoch, train_loss_arr, CFG.device)
         val_one_epoch(model, optimizer, val_loader, epoch, val_loss_arr, CFG.device)
-        torch.save(model.state_dict(), CFG.weight_save_path+f'06-15-{CFG.model_name}_epoch_{epoch}.pt')
+        # 가중치저장하는 제안된방식으로 바꿉니다.
+        # torch.save(model.state_dict(), CFG.weight_save_path+f'07-01_size224_{CFG.model_name}_epoch_{epoch}.pt')
+        torch.save(model.state_dict(), CFG.weight_save_path+f'07-01_size224_{CFG.model_name}_epoch_{epoch}.pt')
 
         print(train_loss_arr)
         print(val_loss_arr)
