@@ -19,6 +19,7 @@ from collections import deque
 
 import matplotlib.pyplot as plt
 
+import numpy as np
 
 # mask  --> 0
 # nomask --> 1
@@ -59,12 +60,15 @@ class CFG:
                         # 나중에 rotate도 
                         A.HorizontalFlip(),
                         A.Resize(img_resize[0],img_resize[1]),
-                        # A.Normalize(),
+                        # A.LongestMaxSize(),
                         ToTensorV2()
                         ])
 
     transform_val = A.Compose([A.Resize(img_resize[0],img_resize[1]),
                                 ToTensorV2()])
+
+# 이거 그래프랑 똑같이 나오면 padding 집어넣고 다시 해보기 ㅎㅎ
+# padding 집어넣었을때 성능향상 효과가 있는지 . 
 
 def set_seed(random_seed):
     torch.manual_seed(random_seed)
@@ -78,7 +82,7 @@ def set_seed(random_seed):
 set_seed(42)
 
 def subplotImg(img1, img2):
-    
+
     fig = plt.figure()
     rows = 1
     cols = 2
@@ -141,14 +145,24 @@ class ImageDataset(Dataset):
         label = self.labels_list[index]
 
         image_ = cv2.imread(img_path, cv2.IMREAD_COLOR)
-        
+
+        # image_ = transform_keep_ratio(image_)
+
+        # 이거해도 오리지널보다 loss 안낮아지더랑
+
         if self.transform:
             transformed = self.transform(image=image_)
             image = transformed['image']
         else:
             pass
-
         return image, label
+
+# 비율작은거 없애기 
+# 일정 크기이하 
+# list
+
+# w/image.shape h/image
+# 세로 가로 0.08:1  and  이하 list
 
 
 class FocalLoss(nn.Module):
@@ -170,6 +184,23 @@ class FocalLoss(nn.Module):
             return torch.mean(FocalLoss)
         else:
             return FocalLoss
+
+def transform_keep_ratio(image):
+    h, w = image.shape[0], image.shape[1]
+    if h == w:
+        return image
+    else:
+        max_value = max(h,w)
+        ones = np.ones((max_value, max_value, 3), dtype=np.uint8)
+        
+        # green image
+        ones[:,:,1] = ones[:,:,1]*255
+        diff_value = abs(h-w)//2
+        if h > w:
+            ones[:,diff_value:diff_value+w,:] = image
+        else:
+            ones[diff_value:diff_value+h,:,:] = image
+        return ones
 
 def train_one_epoch(model, optimizer, dataloader, epoch, train_loss_arr, device):
     model.train()
@@ -236,6 +267,9 @@ if __name__ == "__main__":
 
     val_dataset = ImageDataset(CFG.val_img_path, transform=CFG.transform_val)
     val_loader = DataLoader(val_dataset, shuffle=False, batch_size=CFG.batch_size)
+
+    # 이거 dataset random split 해서 평가할까 흠 . . .
+    # -> 그렇게 해도 seed 고정되어 있어서 일정하게 될거같기는 합니다.
 
     for epoch in range(1, CFG.epochs+1):
         train_one_epoch(model, optimizer, train_loader, epoch, train_loss_arr, CFG.device)

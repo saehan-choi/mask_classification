@@ -24,7 +24,9 @@ class CFG:
 
     weight_path = './weights/07-01_size224_efficientnet_b0_epoch_3.pt'
 
-    transformed = A.Compose([A.Resize(img_resize[0], img_resize[1]),
+    transformed = A.Compose([
+                            # A.
+                            A.Resize(img_resize[0], img_resize[1]),
                             # A.Normalize(),
                             ToTensorV2()
                             ])
