@@ -74,6 +74,7 @@ with torch.no_grad():
     falseCount = 0
     rightCount = 0
     cnt = 0
+    
 
     for k in image_list:
         st = time.time()
@@ -96,7 +97,7 @@ with torch.no_grad():
             falseCount+=1
 
         print(f'{(rightCount/(rightCount+falseCount))*100}%')
-        
+
         
         # if label_list[cnt] == 0:
         #     f = open('./mask_label.txt', 'a')
